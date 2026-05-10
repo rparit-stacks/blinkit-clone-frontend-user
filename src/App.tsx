@@ -5,6 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
+import Wishlist from "./pages/Wishlist";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PullToRefresh from "@/components/customer/PullToRefresh";
 import { haptic } from "@/lib/haptics";
@@ -169,6 +171,7 @@ const AppContent = () => {
               </RequireAuth>
             }
           />
+          <Route path="/wishlist" element={<RequireAuth><Wishlist /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
@@ -179,9 +182,11 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
-      <TooltipProvider>
-        <AppContent />
-      </TooltipProvider>
+      <WishlistProvider>
+        <TooltipProvider>
+          <AppContent />
+        </TooltipProvider>
+      </WishlistProvider>
     </CartProvider>
   </QueryClientProvider>
 );

@@ -5,6 +5,8 @@ export interface ZoneCheckResult {
   zoneName: string | null;
   etaLabel: string | null;
   message: string;
+  deliveryFee: number;
+  minOrderForFree: number;
 }
 
 export async function checkDeliveryZone(lat: number, lng: number): Promise<ZoneCheckResult> {

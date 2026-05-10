@@ -1,6 +1,7 @@
 import { FaPlus, FaMinus, FaHeart } from "react-icons/fa";
 import type { ApiProduct } from "@/lib/catalogApi";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { Link } from "react-router-dom";
 
 interface ProductCardProps {
@@ -9,6 +10,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem, removeItem, getQuantity } = useCart();
+  const { isWishlisted, toggle: toggleWish } = useWishlist();
   const qty = getQuantity(product.id);
   const discount =
     product.originalPrice > product.price
@@ -35,8 +37,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <span className="text-[8px] font-bold text-white/80 leading-none">OFF</span>
           </div>
         )}
-        <button type="button" className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow-sm">
-          <FaHeart className="w-3 h-3 text-gray-300" />
+        <button
+          type="button"
+          onClick={e => { e.preventDefault(); toggleWish(product.id); }}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow-sm active:scale-110 transition-transform"
+        >
+          <FaHeart className={`w-3 h-3 transition-colors ${isWishlisted(product.id) ? "text-red-500" : "text-gray-300"}`} />
         </button>
       </Link>
       <div className="p-3 flex flex-col flex-1">

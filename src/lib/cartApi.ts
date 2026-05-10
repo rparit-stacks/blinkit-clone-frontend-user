@@ -120,3 +120,22 @@ export async function fetchOrderById(id: string): Promise<OrderDto> {
 export async function cancelOrder(id: string): Promise<OrderDto> {
   return apiPost<OrderDto>(`/api/orders/${id}/cancel`, {});
 }
+
+// ─── Coupon API ───────────────────────────────────────────────────────────────
+
+export interface CouponValidateResponse {
+  code: string;
+  discountType: "PERCENT" | "FLAT";
+  discountValue: number;
+  maxDiscount: number;
+  minOrderValue: number;
+  discountAmount: number;
+  description: string;
+}
+
+export async function validateCoupon(code: string, orderTotal: number): Promise<CouponValidateResponse> {
+  return apiPost<CouponValidateResponse>(
+    `/api/admin/coupons/validate?code=${encodeURIComponent(code)}&orderTotal=${orderTotal}`,
+    {}
+  );
+}

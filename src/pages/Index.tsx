@@ -11,6 +11,7 @@ import HeroBanner from "@/components/customer/HeroBanner";
 import ProductCard from "@/components/customer/ProductCard";
 import FloatingCartBar from "@/components/customer/FloatingCartBar";
 import BottomNav from "@/components/customer/BottomNav";
+import OutOfZoneBanner from "@/components/customer/OutOfZoneBanner";
 import { FaArrowRight, FaFire, FaBolt, FaPercentage, FaStar, FaUtensils, FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -18,12 +19,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { clearAccessToken, getAccessToken } from "@/lib/api";
 import { fetchMyProfile } from "@/lib/userProfile";
+import { checkDeliveryZone, getSavedLocation } from "@/lib/locationApi";
 
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [store, setStore] = useState<StoreType>("food");
   const [category, setCategory] = useState("all");
+  const [outOfZoneMsg, setOutOfZoneMsg] = useState<string | null>(null);
+  const [zoneDismissed, setZoneDismissed] = useState(false);
 
   const { data: storeCats = [] } = useQuery({
     queryKey: catalogKeys.categories(store),
@@ -76,6 +80,17 @@ const Index = () => {
     })();
     return () => { cancelled = true; };
   }, [navigate]);
+
+  // Zone check — runs once per session using saved location
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem("zone_dismissed");
+    if (dismissed) return;
+    const loc = getSavedLocation();
+    if (!loc) return;
+    checkDeliveryZone(loc.lat, loc.lng).then((result) => {
+      if (!result.inZone) setOutOfZoneMsg(result.message);
+    }).catch(() => { /* network error — silent */ });
+  }, []);
 
   const handleStoreChange = (s: StoreType) => {
     if (s === "food") {
@@ -255,6 +270,16 @@ const Index = () => {
 
       <FloatingCartBar />
       <BottomNav />
+
+      {outOfZoneMsg && !zoneDismissed && (
+        <OutOfZoneBanner
+          message={outOfZoneMsg}
+          onDismiss={() => {
+            setZoneDismissed(true);
+            sessionStorage.setItem("zone_dismissed", "1");
+          }}
+        />
+      )}
     </div>
   );
 };
