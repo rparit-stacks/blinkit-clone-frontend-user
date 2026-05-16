@@ -39,3 +39,4 @@ test-results/
 
 # Optional local overrides
 *.local
+.vercel

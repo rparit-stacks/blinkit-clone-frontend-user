@@ -69,7 +69,7 @@ const EditProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-24 flex items-center justify-center">
+      <div className="mobile-page bg-background flex items-center justify-center">
         <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     );

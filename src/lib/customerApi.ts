@@ -1,6 +1,6 @@
 import type { StoreType } from "@/data/mockData";
 import { fetchStores, fetchStoreById, fetchStoreBanners, type ApiStore, type ApiBanner } from "@/lib/catalogApi";
-import { notifications, pastOrders } from "@/data/mockData";
+import { pastOrders } from "@/data/mockData";
 
 // Re-export types that callers use
 export type { ApiStore as Restaurant, ApiBanner as Banner };
@@ -126,45 +126,12 @@ export async function verifyPayment(_payload: {
   // stub — always succeeds
 }
 
-export type NotificationItem = {
-  id: number;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-  time: string;
-};
-
-function getLocalNotifications(): NotificationItem[] {
-  const stored = localStorage.getItem("localNotifications");
-  if (stored) return JSON.parse(stored) as NotificationItem[];
-  const defaults = notifications.map((n, i) => ({
-    id: i + 1,
-    title: n.title,
-    message: n.message,
-    read: n.read,
-    createdAt: new Date(Date.now() - i * 60000).toISOString(),
-    time: n.time,
-  }));
-  localStorage.setItem("localNotifications", JSON.stringify(defaults));
-  return defaults;
-}
-
-export async function fetchNotifications(): Promise<NotificationItem[]> {
-  return getLocalNotifications();
-}
-
-export async function markNotificationRead(id: number): Promise<void> {
-  const items = getLocalNotifications();
-  const updated = items.map((n) => (n.id === id ? { ...n, read: true } : n));
-  localStorage.setItem("localNotifications", JSON.stringify(updated));
-}
-
-export async function markAllNotificationsRead(): Promise<void> {
-  const items = getLocalNotifications();
-  const updated = items.map((n) => ({ ...n, read: true }));
-  localStorage.setItem("localNotifications", JSON.stringify(updated));
-}
+export type { NotificationItem } from "@/lib/notificationsApi";
+export {
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from "@/lib/notificationsApi";
 
 export type DeliveryStatus = { orderId: string; status: string; etaMinutes: number | null };
 

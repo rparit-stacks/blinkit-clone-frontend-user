@@ -3,6 +3,9 @@ import { FaTimes, FaSearch, FaLocationArrow, FaCheckCircle, FaTimesCircle } from
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import type { SavedLocation, NominatimResult } from "@/lib/locationApi";
 import { reverseGeocode, searchAddress } from "@/lib/locationApi";
+import { isNativeApp, requestNativeLocationCoords } from "@/lib/nativeApp";
+import { haptic } from "@/lib/haptics";
+import { toast } from "sonner";
 
 // Default center: Nainital, Uttarakhand
 const NAINITAL_CENTER: [number, number] = [29.3803, 79.4636];
@@ -119,17 +122,51 @@ export default function LocationPicker({ initial, onConfirm, onClose, inZone }: 
     setSearching(false);
   };
 
-  const handleDetect = async () => {
-    setDetecting(true);
+  const detectViaBrowser = async (): Promise<boolean> => {
+    if (!navigator.geolocation) return false;
     try {
       const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 12_000,
+          maximumAge: 60_000,
+          enableHighAccuracy: true,
+        })
       );
       const { latitude: la, longitude: lo } = pos.coords;
       const lbl = await reverseGeocode(la, lo);
       moveTo(la, lo, lbl);
+      return true;
     } catch {
-      // permission denied or timeout — ignore
+      return false;
+    }
+  };
+
+  const handleDetect = async () => {
+    setDetecting(true);
+    haptic(10, "medium");
+    try {
+      let coords: { lat: number; lng: number } | null = null;
+
+      if (isNativeApp()) {
+        coords = await requestNativeLocationCoords({ timeoutMs: 20_000 });
+      }
+
+      if (!coords) {
+        const ok = await detectViaBrowser();
+        if (ok) return;
+        toast.error("GPS location not available. Allow location permission, or pick on the map.");
+        return;
+      }
+
+      const lbl = await Promise.race([
+        reverseGeocode(coords.lat, coords.lng),
+        new Promise<string>((_, reject) =>
+          window.setTimeout(() => reject(new Error("geocode-timeout")), 8_000)
+        ),
+      ]).catch(() => `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`);
+      moveTo(coords.lat, coords.lng, lbl);
+    } catch {
+      toast.error("Could not detect location. Try again or search your area.");
     } finally {
       setDetecting(false);
     }
@@ -226,7 +263,10 @@ export default function LocationPicker({ initial, onConfirm, onClose, inZone }: 
         <button
           type="button"
           className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-bold"
-          onClick={() => onConfirm({ lat, lng, label: label || `${lat.toFixed(5)}, ${lng.toFixed(5)}` })}
+          onClick={() => {
+            haptic(12, "confirm");
+            onConfirm({ lat, lng, label: label || `${lat.toFixed(5)}, ${lng.toFixed(5)}` });
+          }}
         >
           Confirm Location
         </button>

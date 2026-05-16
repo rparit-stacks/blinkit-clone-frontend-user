@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useNavigate, useParams } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,9 +8,11 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import Wishlist from "./pages/Wishlist";
 import { useIsMobile } from "@/hooks/use-mobile";
-import PullToRefresh from "@/components/customer/PullToRefresh";
 import { haptic } from "@/lib/haptics";
+import NativeLocationPrompt from "@/components/customer/NativeLocationPrompt";
+import { onNativeDeepLink } from "@/lib/nativeApp";
 import { getAccessToken } from "@/lib/api";
+import { initPushNotifications, subscribeNativePushTokenRefresh } from "@/lib/pushNotifications";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -24,6 +26,7 @@ import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Addresses from "./pages/Addresses";
+import AddressAdd from "./pages/AddressAdd";
 import Onboarding from "./pages/Onboarding";
 import Notifications from "./pages/Notifications";
 import StorePage from "./pages/StorePage";
@@ -47,6 +50,28 @@ const OrderTrackingLegacyRedirect = () => {
 
 const AppContent = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (getAccessToken()) {
+      initPushNotifications().catch(() => {});
+    }
+    const unsubNative = subscribeNativePushTokenRefresh();
+    const go = (path: string) => {
+      if (path.startsWith("/")) navigate(path);
+    };
+    const onPushNavigate = (e: Event) => {
+      const path = (e as CustomEvent<{ path: string }>).detail?.path;
+      if (path) go(path);
+    };
+    window.addEventListener("naini-notification-navigate", onPushNavigate);
+    const unsubDeepLink = onNativeDeepLink(go);
+    return () => {
+      unsubNative();
+      unsubDeepLink();
+      window.removeEventListener("naini-notification-navigate", onPushNavigate);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const onPointerUp = (e: PointerEvent) => {
@@ -60,7 +85,7 @@ const AppContent = () => {
       if (!interactive) return;
       // Avoid vibrating on disabled
       if ((interactive as HTMLButtonElement).disabled) return;
-      haptic(12);
+      haptic(12, "light");
     };
     window.addEventListener("pointerup", onPointerUp);
     return () => window.removeEventListener("pointerup", onPointerUp);
@@ -68,11 +93,10 @@ const AppContent = () => {
 
   return (
     <>
-      <PullToRefresh enabled={isMobile} />
+      <NativeLocationPrompt />
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
+      <Routes>
           <Route
             path="/"
             element={
@@ -164,6 +188,14 @@ const AppContent = () => {
             }
           />
           <Route
+            path="/addresses/add"
+            element={
+              <RequireAuth>
+                <AddressAdd />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/notifications"
             element={
               <RequireAuth>
@@ -173,8 +205,7 @@ const AppContent = () => {
           />
           <Route path="/wishlist" element={<RequireAuth><Wishlist /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      </Routes>
     </>
   );
 };
@@ -184,7 +215,9 @@ const App = () => (
     <CartProvider>
       <WishlistProvider>
         <TooltipProvider>
-          <AppContent />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
         </TooltipProvider>
       </WishlistProvider>
     </CartProvider>

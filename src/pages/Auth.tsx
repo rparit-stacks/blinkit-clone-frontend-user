@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { FaArrowLeft } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AuthHeroIllustration } from "@/components/auth/AuthHeroIllustration";
 import { publicPost, setTokens } from "@/lib/api";
+import { initPushNotifications } from "@/lib/pushNotifications";
 import { navigateAfterLogin } from "@/lib/postLogin";
 import { loadGsiScript } from "@/lib/googleGsi";
+import { haptic } from "@/lib/haptics";
 
 type AuthStep = "email" | "otp";
 
@@ -24,6 +26,7 @@ const Auth = () => {
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [gsiReady, setGsiReady] = useState(false);
   const gsiHostRef = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -48,6 +51,7 @@ const Auth = () => {
       toast.error("Enter a valid email address");
       return;
     }
+    haptic(12, "medium");
     setBusy(true);
     try {
       const data = await publicPost<SendOtpData>("/api/auth/email/send-otp", { email: email.trim() });
@@ -70,6 +74,7 @@ const Auth = () => {
       toast.error("Enter the 6-digit OTP");
       return;
     }
+    haptic(15, "confirm");
     setBusy(true);
     try {
       const data = await publicPost<AuthData>("/api/auth/email/verify-otp", {
@@ -77,6 +82,7 @@ const Auth = () => {
         otp: otp.trim(),
       });
       setTokens(data.accessToken, data.refreshToken);
+      void initPushNotifications();
       toast.success("Signed in successfully!");
       await navigateAfterLogin(navigate);
     } catch (e) {
@@ -91,6 +97,7 @@ const Auth = () => {
     try {
       const data = await publicPost<AuthData>("/api/auth/google", { idToken: credential });
       setTokens(data.accessToken, data.refreshToken);
+      void initPushNotifications();
       toast.success("Signed in with Google!");
       await navigateAfterLogin(navigate);
     } catch (e) {
@@ -101,8 +108,7 @@ const Auth = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID.trim() || !gsiHostRef.current) return;
-    const el = gsiHostRef.current;
+    if (!GOOGLE_CLIENT_ID.trim()) return;
     let cancelled = false;
     (async () => {
       try {
@@ -113,147 +119,185 @@ const Auth = () => {
           callback: (resp) => { if (resp?.credential) void handleGoogleCredential(resp.credential); },
           auto_select: false,
         });
-        el.innerHTML = "";
-        window.google.accounts.id.renderButton(el, {
-          type: "standard", theme: "filled_blue", size: "large",
-          text: "signin_with", width: 320, shape: "pill",
-        });
-      } catch { /* GSI not available */ }
+        setGsiReady(true);
+      } catch {
+        // GSI not available
+      }
     })();
     return () => {
       cancelled = true;
       try { window.google?.accounts?.id.cancel(); } catch { /* ignore */ }
-      el.innerHTML = "";
     };
   }, [handleGoogleCredential]);
 
+  // Render the native Google button when GSI is ready (only on email step)
+  useEffect(() => {
+    if (!gsiReady || step !== "email" || !gsiHostRef.current) return;
+    const el = gsiHostRef.current;
+    try {
+      el.innerHTML = "";
+      window.google?.accounts?.id.renderButton(el, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        width: 320,
+        shape: "pill",
+      });
+    } catch {
+      /* ignore */
+    }
+    return () => { el.innerHTML = ""; };
+  }, [gsiReady, step]);
+
+  const googleConfigured = !!GOOGLE_CLIENT_ID.trim();
+
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background max-w-lg mx-auto w-full shadow-[0_0_0_1px_hsl(var(--border))] md:my-4 md:min-h-[calc(100dvh-2rem)] md:rounded-modal md:overflow-hidden">
-      {/* Hero */}
-      <div className="relative h-[45dvh] min-h-[220px] shrink-0 overflow-hidden bg-[#5b21b6]">
-        <AuthHeroIllustration className="absolute inset-0 h-full w-full min-h-[220px]" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-[#4c1d95]/35" aria-hidden />
-        <div className="absolute inset-0 flex flex-col justify-between p-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
-          <Link
-            to="/"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md ring-1 ring-white/30 hover:bg-white/30 transition-colors w-fit"
-            aria-label="Home"
-          >
-            <span className="text-lg leading-none">←</span>
-          </Link>
-          <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 px-4 py-3 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
-            <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">NaniStore</h1>
-            <p className="mt-1 text-sm text-white/95">
-              {step === "email" ? "Sign in to continue" : `OTP sent to ${email}`}
-            </p>
-          </div>
-        </div>
+    <div className="min-h-[100dvh] bg-white flex flex-col">
+      {/* Top bar — back button only */}
+      <div className="flex items-center px-4 pt-4 pb-2">
+        <Link
+          to="/"
+          aria-label="Back"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 active:scale-95 transition-transform"
+        >
+          <FaArrowLeft className="w-4 h-4 text-gray-700" />
+        </Link>
       </div>
 
-      {/* Form card */}
-      <div className="relative flex flex-1 flex-col rounded-t-[28px] bg-card px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-8 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] -mt-5 z-10">
-
+      <div className="flex-1 flex flex-col px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] max-w-md mx-auto w-full">
         {step === "email" ? (
           <>
-            <h2 className="text-lg font-semibold text-foreground">Welcome</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Enter your email — we'll send you a one-time password.
-            </p>
+            <div className="mb-8">
+              <h1 className="text-[26px] font-extrabold leading-tight text-foreground">
+                Welcome to{" "}
+                <span className="text-primary">NaniStore</span>
+              </h1>
+              <p className="mt-2 text-[14px] text-muted-foreground leading-snug">
+                Sign in or sign up with your email to start ordering.
+              </p>
+            </div>
 
-            <div className="mt-8 flex flex-col gap-4">
-              <div>
-                <Label htmlFor="auth-email">Email address</Label>
+            <div className="flex flex-col gap-3">
+              <div className="relative">
                 <Input
                   id="auth-email"
                   type="email"
-                  placeholder="you@example.com"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 h-12"
+                  className="h-14 rounded-2xl border-gray-200 bg-gray-50 px-4 text-[15px] placeholder:text-gray-400 focus-visible:ring-primary"
                   onKeyDown={(e) => e.key === "Enter" && void handleSendOtp()}
                   autoFocus
                 />
               </div>
+
               <Button
                 type="button"
-                className="h-12 w-full rounded-2xl text-base font-bold"
+                className="h-14 w-full rounded-2xl text-[15px] font-bold shadow-[0_8px_24px_rgba(75,0,130,0.25)]"
                 onClick={() => void handleSendOtp()}
-                disabled={busy}
+                disabled={busy || !email.trim()}
               >
-                {busy ? "Sending OTP…" : "Send OTP"}
+                {busy ? "Sending OTP…" : "Continue"}
               </Button>
             </div>
 
-            {GOOGLE_CLIENT_ID.trim() && (
-              <>
-                <div className="my-6 flex items-center gap-3">
-                  <div className="flex-1 h-px bg-border" />
-                  <span className="text-xs text-muted-foreground">or</span>
-                  <div className="flex-1 h-px bg-border" />
-                </div>
-                <div className="flex min-h-[48px] w-full max-w-[320px] mx-auto items-center justify-center">
-                  <div
-                    ref={gsiHostRef}
-                    className="flex min-h-[48px] w-full max-w-[320px] items-center justify-center [&>iframe]:max-w-full"
-                  />
-                </div>
-              </>
+            <div className="my-6 flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">or</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {googleConfigured && gsiReady ? (
+              <div className="flex w-full justify-center">
+                <div
+                  ref={gsiHostRef}
+                  className="flex min-h-[48px] w-full max-w-[320px] items-center justify-center [&>div]:!w-full [&>iframe]:!max-w-full"
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={!googleConfigured || busy}
+                onClick={() => {
+                  if (!googleConfigured) {
+                    toast.info("Google sign-in is not configured yet. Please use email OTP.");
+                    return;
+                  }
+                  toast.loading("Loading Google…", { id: "gsi" });
+                }}
+                className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white text-[15px] font-semibold text-foreground shadow-sm active:scale-[0.99] transition-transform disabled:opacity-60"
+              >
+                <FcGoogle className="w-5 h-5" />
+                <span>Continue with Google</span>
+              </button>
             )}
+
+            <p className="mt-auto pt-8 text-center text-[11px] text-muted-foreground leading-relaxed">
+              By continuing, you agree to our{" "}
+              <span className="text-foreground font-medium">Terms</span> &{" "}
+              <span className="text-foreground font-medium">Privacy Policy</span>.
+            </p>
           </>
         ) : (
           <>
-            <h2 className="text-lg font-semibold text-foreground">Enter OTP</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Check <span className="font-medium text-foreground">{email}</span> for a 6-digit code.
-            </p>
+            <div className="mb-8">
+              <h1 className="text-[24px] font-extrabold leading-tight text-foreground">
+                Verify your email
+              </h1>
+              <p className="mt-2 text-[14px] text-muted-foreground leading-snug">
+                We sent a 6-digit code to{" "}
+                <span className="font-semibold text-foreground">{email}</span>
+              </p>
+            </div>
 
-            <div className="mt-8 flex flex-col gap-4">
-              <div>
-                <Label htmlFor="auth-otp">6-digit OTP</Label>
-                <Input
-                  id="auth-otp"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder="123456"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  className="mt-1.5 h-12 tracking-[0.4em] text-center text-lg font-bold"
-                  onKeyDown={(e) => e.key === "Enter" && void handleVerifyOtp()}
-                  autoFocus
-                />
-              </div>
+            <Input
+              id="auth-otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="••••••"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="h-16 rounded-2xl border-gray-200 bg-gray-50 text-center text-[24px] font-bold tracking-[0.5em] placeholder:text-gray-300 focus-visible:ring-primary"
+              onKeyDown={(e) => e.key === "Enter" && void handleVerifyOtp()}
+              autoFocus
+            />
 
-              <Button
+            <Button
+              type="button"
+              className="mt-4 h-14 w-full rounded-2xl text-[15px] font-bold shadow-[0_8px_24px_rgba(75,0,130,0.25)]"
+              onClick={() => void handleVerifyOtp()}
+              disabled={busy || otp.length !== 6}
+            >
+              {busy ? "Verifying…" : "Verify & Continue"}
+            </Button>
+
+            <div className="mt-5 flex items-center justify-between text-[13px]">
+              <button
                 type="button"
-                className="h-12 w-full rounded-2xl text-base font-bold"
-                onClick={() => void handleVerifyOtp()}
-                disabled={busy}
+                className="text-muted-foreground font-medium active:text-foreground"
+                onClick={() => { setStep("email"); setOtp(""); }}
               >
-                {busy ? "Verifying…" : "Verify OTP"}
-              </Button>
-
-              <div className="flex items-center justify-between text-sm">
+                Change email
+              </button>
+              {countdown > 0 ? (
+                <span className="text-muted-foreground">
+                  Resend in <span className="font-semibold text-foreground">{countdown}s</span>
+                </span>
+              ) : (
                 <button
                   type="button"
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={() => { setStep("email"); setOtp(""); }}
+                  className="text-primary font-semibold active:opacity-70"
+                  onClick={() => void handleSendOtp()}
+                  disabled={busy}
                 >
-                  ← Change email
+                  Resend OTP
                 </button>
-                {countdown > 0 ? (
-                  <span className="text-muted-foreground">Resend in {countdown}s</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="text-primary font-medium"
-                    onClick={() => void handleSendOtp()}
-                    disabled={busy}
-                  >
-                    Resend OTP
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </>
         )}

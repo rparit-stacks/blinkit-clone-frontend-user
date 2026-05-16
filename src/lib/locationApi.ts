@@ -29,17 +29,57 @@ export interface NominatimResult {
 }
 
 export async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+  const parsed = await reverseGeocodeParsed(lat, lng);
+  return parsed.displayLabel;
+}
+
+export type ParsedAddress = {
+  line1: string;
+  line2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  displayLabel: string;
+};
+
+export async function reverseGeocodeParsed(lat: number, lng: number): Promise<ParsedAddress> {
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
   const res = await fetch(url, { headers: { "Accept-Language": "en" } });
-  if (!res.ok) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  const data = (await res.json()) as NominatimResult;
-  const a = data.address;
-  const parts = [
-    a.road,
-    a.suburb,
-    a.city || a.town || a.village,
-  ].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : data.display_name.split(",")[0];
+  if (!res.ok) {
+    return {
+      line1: "",
+      line2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      displayLabel: `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+    };
+  }
+  const data = (await res.json()) as NominatimResult & {
+    address?: NominatimResult["address"] & {
+      house_number?: string;
+      postcode?: string;
+      state_district?: string;
+    };
+  };
+  const a = data.address ?? {};
+  const line1 = [a.house_number, a.road].filter(Boolean).join(" ").trim()
+    || a.suburb
+    || data.display_name.split(",")[0]?.trim()
+    || "";
+  const line2 = a.suburb && a.suburb !== line1 ? a.suburb : "";
+  const city = (a.city || a.town || a.village || "").trim();
+  const state = (a.state || a.state_district || "").trim();
+  const pincode = (a.postcode || "").trim();
+  const parts = [line1, line2, city].filter(Boolean);
+  return {
+    line1,
+    line2,
+    city,
+    state,
+    pincode,
+    displayLabel: parts.length > 0 ? parts.join(", ") : data.display_name.split(",")[0]?.trim() ?? "",
+  };
 }
 
 export async function searchAddress(query: string): Promise<NominatimResult[]> {

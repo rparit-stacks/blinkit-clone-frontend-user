@@ -141,7 +141,7 @@ const SearchPage = () => {
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="mobile-page bg-background">
       {/* Header with inline search bar */}
       <header className="sticky top-0 z-50 bg-[#F7F3FF] border-b border-violet-100/60 px-4 py-3 flex items-center gap-3">
         <Link

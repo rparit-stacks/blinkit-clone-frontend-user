@@ -102,7 +102,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-8">
+    <div className="mobile-page bg-background lg:pb-8">
       <CustomerHeader store={store} onStoreChange={handleStoreChange} />
       <StoreTabs active={store} onChange={handleStoreChange} />
       <SearchBar store={store} floating />

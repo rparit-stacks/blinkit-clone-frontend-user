@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FaChevronDown, FaUser, FaBell, FaSearch, FaArrowRight, FaMapMarkerAlt, FaBolt } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { fetchNotifications } from "@/lib/notificationsApi";
 import { StoreType, storeTypes } from "@/data/mockData";
 import storeFood from "@/assets/store-food.png";
 import storeBazaar from "@/assets/store-bazaar.png";
@@ -37,6 +39,14 @@ const CustomerHeader = ({ store, onStoreChange }: CustomerHeaderProps) => {
   const [showPicker, setShowPicker] = useState(false);
   const { location, zone, setLocation } = useLocation();
 
+  const { data: notifItems = [] } = useQuery({
+    queryKey: ["customer", "notifications"],
+    queryFn: fetchNotifications,
+    staleTime: 60_000,
+    refetchInterval: 90_000,
+  });
+  const unreadCount = notifItems.filter((n) => !n.read).length;
+
   const handleConfirm = async (loc: SavedLocation) => {
     await setLocation(loc);
     setShowPicker(false);
@@ -48,8 +58,8 @@ const CustomerHeader = ({ store, onStoreChange }: CustomerHeaderProps) => {
   return (
     <>
       {/* ─── Mobile Header ─── */}
-      <header className="sticky top-0 z-50 lg:hidden bg-[#F7F3FF]">
-        <div className="relative flex items-center justify-between px-4 py-3 overflow-hidden">
+      <header className="sticky top-0 z-50 lg:hidden bg-[#F7F3FF] border-b border-gray-100">
+        <div className="relative flex items-center justify-between px-4 py-3 overflow-hidden bg-[#F7F3FF]">
           {/* Left: Delivery time + address */}
           <button
             type="button"
@@ -78,7 +88,11 @@ const CustomerHeader = ({ store, onStoreChange }: CustomerHeaderProps) => {
               className="relative w-9 h-9 rounded-full bg-white/80 flex items-center justify-center"
             >
               <FaBell className="w-3.5 h-3.5 text-primary" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
             <Link
               to="/profile"

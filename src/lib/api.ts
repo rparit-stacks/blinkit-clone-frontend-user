@@ -8,13 +8,19 @@ export function getAccessToken(): string | null {
   return localStorage.getItem("accessToken");
 }
 
+function notifyAuthChange(): void {
+  window.dispatchEvent(new Event("nani-auth-changed"));
+}
+
 export function setAccessToken(token: string): void {
   localStorage.setItem("accessToken", token);
+  notifyAuthChange();
 }
 
 export function clearAccessToken(): void {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
+  notifyAuthChange();
 }
 
 export function getRefreshToken(): string | null {
@@ -24,6 +30,7 @@ export function getRefreshToken(): string | null {
 export function setTokens(access: string, refresh: string): void {
   localStorage.setItem("accessToken", access);
   localStorage.setItem("refreshToken", refresh);
+  notifyAuthChange();
 }
 
 export function authHeaders(json = false): Record<string, string> {

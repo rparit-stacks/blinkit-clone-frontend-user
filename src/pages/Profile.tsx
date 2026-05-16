@@ -12,9 +12,9 @@ import type { UserProfile } from "@/lib/userProfile";
 import { fetchMyProfile } from "@/lib/userProfile";
 
 const menuItems = [
-  { icon: FaClipboardList, label: "My Orders", path: "/store/food/orders" },
+  { icon: FaClipboardList, label: "My Orders", path: "/orders" },
   { icon: FaMapMarkerAlt, label: "Saved Addresses", path: "/addresses" },
-  { icon: FaHeart, label: "Wishlist", path: "#" },
+  { icon: FaHeart, label: "Wishlist", path: "/wishlist" },
   { icon: FaBell, label: "Notifications", path: "/notifications" },
 ];
 
@@ -63,7 +63,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="mobile-page bg-background">
       <header className="sticky top-0 z-50 bg-[#F7F3FF] border-b border-violet-100/60 px-4 py-3 flex items-center gap-3">
         <Link to="/" className="w-9 h-9 rounded-full bg-white/90 border border-violet-100 flex items-center justify-center text-foreground">
           <FaChevronLeft className="w-3.5 h-3.5" />

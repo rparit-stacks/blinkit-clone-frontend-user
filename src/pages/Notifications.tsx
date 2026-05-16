@@ -1,5 +1,5 @@
 import { FaChevronLeft, FaCheckDouble, FaCircle } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import BottomNav from "@/components/customer/BottomNav";
 import {
@@ -8,13 +8,16 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/lib/customerApi";
+import { resolveNotificationPath } from "@/lib/notificationNavigation";
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: items = [], isLoading, isError, error } = useQuery({
     queryKey: customerKeys.notifications(),
     queryFn: fetchNotifications,
     staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   const markOne = useMutation({
@@ -28,7 +31,7 @@ const Notifications = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="mobile-page bg-background">
       <header className="sticky top-0 z-50 bg-[#F7F3FF] border-b border-violet-100/60 px-4 py-3 flex items-center gap-3">
         <Link
           to="/profile"
@@ -62,6 +65,11 @@ const Notifications = () => {
               type="button"
               onClick={() => {
                 if (!n.read) markOne.mutate(n.id);
+                const path = resolveNotificationPath({
+                  relatedEntityKind: n.relatedEntityKind,
+                  relatedEntityId: n.relatedEntityId,
+                });
+                if (path !== "/notifications") navigate(path);
               }}
               className={`w-full text-left bg-card rounded-card shadow-card p-4 flex gap-3 ${!n.read ? "border-l-4 border-primary" : ""}`}
             >

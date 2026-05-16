@@ -62,7 +62,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {qty === 0 ? (
             <button
               type="button"
-              onClick={() => addItem(product.id, 0)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                addItem(product.id, 0, product);
+              }}
               className="px-4 h-8 rounded-lg bg-white border-[1.5px] border-primary text-primary text-[12px] font-bold active:scale-95 transition-transform"
             >
               ADD
@@ -71,7 +75,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <div className="flex items-center gap-0 border-[1.5px] border-primary rounded-lg overflow-hidden h-8">
               <button
                 type="button"
-                onClick={() => removeItem(product.id, qty)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeItem(product.id, qty); }}
                 className="w-7 h-full flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"
               >
                 <FaMinus className="w-2.5 h-2.5" />
@@ -79,7 +83,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <span className="w-7 text-center text-[12px] font-bold text-primary">{qty}</span>
               <button
                 type="button"
-                onClick={() => addItem(product.id, qty)}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); addItem(product.id, qty, product); }}
                 className="w-7 h-full flex items-center justify-center text-primary hover:bg-primary/10 transition-colors"
               >
                 <FaPlus className="w-2.5 h-2.5" />
