@@ -19,7 +19,7 @@ Customer-facing PWA. Entry point for shoppers browsing Food, Bazaar, and Electro
 ## Environment
 Create `.env.local` before running:
 ```
-VITE_API_BASE_URL=https://nainistore.com
+VITE_API_BASE_URL=https://www.nainistore.in
 ```
 
 ## Dev
@@ -99,7 +99,7 @@ Thin fetch wrappers: `apiGet`, `apiPost`, `apiPut`, `apiDelete`, `publicPost`.
 - [ ] `bun run build` zero errors
 - [ ] `bun run lint` zero warnings
 - [ ] `bun run test` all green
-- [ ] Manually verify on nainistore.com API: home, bazaar store, product add-to-cart, checkout flow
+- [ ] Manually verify on www.nainistore.in API: home, bazaar store, product add-to-cart, checkout flow
 - [ ] Mobile viewport (390×844) visual check
 
 ## Learnings Log
