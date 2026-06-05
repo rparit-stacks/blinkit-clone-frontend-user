@@ -171,7 +171,7 @@ const Auth = () => {
             <div className="mb-8">
               <h1 className="text-[26px] font-extrabold leading-tight text-foreground">
                 Welcome to{" "}
-                <span className="text-primary">NaniStore</span>
+                <span className="text-primary">NainiStore</span>
               </h1>
               <p className="mt-2 text-[14px] text-muted-foreground leading-snug">
                 Sign in or sign up with your email to start ordering.

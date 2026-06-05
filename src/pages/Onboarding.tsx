@@ -55,7 +55,7 @@ const Onboarding = () => {
     setSaving(true);
     try {
       await upsertMyProfile({ fullName: name.trim() });
-      toast.success("Welcome to NaniStore!");
+      toast.success("Welcome to NainiStore!");
       navigate("/", { replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save profile");

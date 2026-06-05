@@ -1,5 +1,5 @@
 /**
- * NaniStore Android injects {@link Window.AndroidGoogleSignIn} and calls
+ * NainiStore Android injects {@link Window.AndroidGoogleSignIn} and calls
  * {@link Window.__resolveNativeGoogleJwt} with the app JWT after native Google Sign-In
  * and backend exchange (stored encrypted on device).
  */
@@ -7,7 +7,7 @@ declare global {
   interface Window {
     AndroidGoogleSignIn?: {
       requestGoogleSignInAndExchange: () => void;
-      /** Injected by NaniStore MainActivity when Web client ID is set in strings.xml */
+      /** Injected by NainiStore MainActivity when Web client ID is set in strings.xml */
       isGoogleSignInReady?: () => boolean;
     };
     __resolveNativeGoogleJwt?: (accessToken: string) => void;
@@ -40,14 +40,14 @@ export function isNativeGoogleSignInAvailable(): boolean {
   return typeof window.AndroidGoogleSignIn?.requestGoogleSignInAndExchange === "function";
 }
 
-/** NaniStore Android WebView sets this in the User-Agent (see MainActivity). */
-export function isNaniStoreAndroidWebView(): boolean {
+/** NainiStore Android WebView sets this in the User-Agent (see MainActivity). */
+export function isNainiStoreAndroidWebView(): boolean {
   return /NaniStoreAndroid\//i.test(navigator.userAgent || "");
 }
 
 /** Native picker is required in the app shell — never use embedded GIS iframe there. */
 export function useDeviceGoogleAccountPicker(): boolean {
-  return isNativeGoogleSignInAvailable() || isNaniStoreAndroidWebView();
+  return isNativeGoogleSignInAvailable() || isNainiStoreAndroidWebView();
 }
 
 /** False only when the app exposes readiness and Google client is not configured in strings.xml. */
