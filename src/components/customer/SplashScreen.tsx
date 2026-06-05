@@ -12,26 +12,51 @@ const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] bg-primary flex flex-col items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center transition-opacity duration-500 ${
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
+      style={{
+        backgroundImage: 'url("/naini-hero.jpg")',
+        backgroundSize: "cover",
+        backgroundPosition: "center 40%",
+      }}
     >
-      {/* BG Pattern */}
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-      }} />
+      {/* Atmospheric overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#07090f]/90 via-[#07090f]/55 to-[#07090f]/30" />
 
-      <div className="relative flex flex-col items-center animate-[fadeInUp_0.6s_ease-out]">
-        <img src={splashLogo} alt="NainiStore" className="w-24 h-24 mb-4 drop-shadow-lg" width={96} height={96} />
-        <h1 className="text-3xl font-extrabold text-primary-foreground tracking-tight">NainiStore</h1>
-        <p className="text-sm text-primary-foreground/70 mt-1">Deliver happiness, fast</p>
+      <div className="relative flex flex-col items-center">
+        <div
+          className="w-20 h-20 rounded-[24px] flex items-center justify-center mb-5"
+          style={{
+            background: "rgba(255,255,255,0.1)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            boxShadow: "0 16px 40px -8px rgba(0,0,0,0.5)",
+          }}
+        >
+          <img src={splashLogo} alt="NainiStore" className="w-12 h-12 drop-shadow-lg" width={48} height={48} />
+        </div>
+        <h1 className="text-[2rem] font-black text-white tracking-tight">NainiStore</h1>
+        <p className="text-sm mt-1 font-medium" style={{ color: "#e8ab3f" }}>
+          Nainital · Delivered fast
+        </p>
       </div>
 
       {/* Loading dots */}
-      <div className="absolute bottom-20 flex gap-2">
-        <span className="w-2 h-2 bg-primary-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-        <span className="w-2 h-2 bg-primary-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-        <span className="w-2 h-2 bg-primary-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+      <div className="absolute bottom-[max(5rem,env(safe-area-inset-bottom))] flex gap-2">
+        <span
+          className="w-1.5 h-1.5 rounded-full animate-bounce"
+          style={{ background: "rgba(232,171,63,0.7)", animationDelay: "0ms" }}
+        />
+        <span
+          className="w-1.5 h-1.5 rounded-full animate-bounce"
+          style={{ background: "rgba(232,171,63,0.7)", animationDelay: "150ms" }}
+        />
+        <span
+          className="w-1.5 h-1.5 rounded-full animate-bounce"
+          style={{ background: "rgba(232,171,63,0.7)", animationDelay: "300ms" }}
+        />
       </div>
     </div>
   );

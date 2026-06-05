@@ -154,18 +154,38 @@ const Auth = () => {
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col">
-      {/* Top bar — back button only */}
-      <div className="flex items-center px-4 pt-4 pb-2">
-        <Link
-          to="/"
-          aria-label="Back"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 active:scale-95 transition-transform"
-        >
-          <FaArrowLeft className="w-4 h-4 text-gray-700" />
-        </Link>
+      {/* Hero header — Nainital photo */}
+      <div
+        className="relative h-[38vh] min-h-[200px] overflow-hidden shrink-0"
+        style={{
+          backgroundImage: 'url("/naini-hero.jpg")',
+          backgroundSize: "cover",
+          backgroundPosition: "center 40%",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-white" />
+
+        {/* Back button */}
+        <div className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4">
+          <Link
+            to="/"
+            aria-label="Back"
+            className="flex h-10 w-10 items-center justify-center rounded-full active:scale-95 transition-transform"
+            style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+          >
+            <FaArrowLeft className="w-4 h-4 text-white" />
+          </Link>
+        </div>
+
+        {/* Location tag */}
+        <div className="absolute bottom-10 left-6">
+          <p className="text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: "#e8ab3f" }}>
+            Nainital · Uttarakhand
+          </p>
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] max-w-md mx-auto w-full">
+      <div className="flex-1 flex flex-col px-6 pt-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] max-w-md mx-auto w-full">
         {step === "email" ? (
           <>
             <div className="mb-8">
