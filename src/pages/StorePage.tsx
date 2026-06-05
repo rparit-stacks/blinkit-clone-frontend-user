@@ -12,6 +12,7 @@ import BottomNav from "@/components/customer/BottomNav";
 import FloatingCartBar from "@/components/customer/FloatingCartBar";
 import { type StoreType, storeTypes } from "@/data/mockData";
 import { catalogKeys, fetchStoreCategories, fetchStoreProducts } from "@/lib/catalogApi";
+import PartnerStoresSection from "@/components/customer/PartnerStoresSection";
 
 const isStoreType = (value: string | undefined): value is StoreType =>
   !!value && storeTypes.some((store) => store.id === value);
@@ -91,6 +92,14 @@ const StorePage = () => {
             </div>
           </Link>
         </section>
+      )}
+
+      {/* Partner stores for this category */}
+      {store !== "food" && (
+        <PartnerStoresSection
+          store={store}
+          title={`${storeName} Partner Stores`}
+        />
       )}
 
       <section className="px-4 py-2 max-w-7xl mx-auto">

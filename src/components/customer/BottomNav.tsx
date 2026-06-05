@@ -1,4 +1,4 @@
-import { FaHome, FaClipboardList, FaSearch, FaUser, FaHeart } from "react-icons/fa";
+import { FaHome, FaClipboardList, FaSearch, FaUser, FaHeart, FaStore } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
 import { useWishlist } from "@/context/WishlistContext";
 
@@ -17,6 +17,7 @@ const BottomNav = () => {
 
   const navItems = [
     { icon: FaHome,          label: "Home",    path: store === "food" ? "/" : `/store/${store}` },
+    { icon: FaStore,         label: "Stores",  path: "/stores" },
     { icon: FaClipboardList, label: "Orders",  path: "/orders" },
     { icon: FaSearch,        label: "Search",  path: `/search/${store}` },
     { icon: FaHeart,         label: "Wishlist",path: "/wishlist" },
@@ -32,6 +33,8 @@ const BottomNav = () => {
               ? location.pathname.startsWith("/search")
               : item.label === "Orders"
               ? location.pathname.startsWith("/orders") || location.pathname.startsWith("/order-tracking")
+              : item.label === "Stores"
+              ? location.pathname.startsWith("/stores") || location.pathname.startsWith("/store-catalog")
               : item.label === "Wishlist"
               ? location.pathname === "/wishlist"
               : location.pathname === item.path;

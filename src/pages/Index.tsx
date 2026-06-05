@@ -20,6 +20,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { clearAccessToken, getAccessToken } from "@/lib/api";
 import { fetchMyProfile } from "@/lib/userProfile";
 import { checkDeliveryZone, getSavedLocation } from "@/lib/locationApi";
+import PartnerStoresSection from "@/components/customer/PartnerStoresSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -150,6 +151,11 @@ const Index = () => {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Food partner stores */}
+      {store === "food" && (
+        <PartnerStoresSection store="food" title="Food Stores Near You" />
       )}
 
       {/* Quick Actions */}

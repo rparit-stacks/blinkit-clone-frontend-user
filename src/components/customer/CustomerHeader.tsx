@@ -115,7 +115,7 @@ const CustomerHeader = ({ store, onStoreChange }: CustomerHeaderProps) => {
       <header className="hidden lg:block">
         <div className="bg-gradient-to-r from-[#4B0082] to-[#7C3AED]">
           <div className="max-w-7xl mx-auto px-10 py-4 flex items-center justify-between">
-            <span className="text-2xl font-extrabold text-primary-foreground tracking-tight">NaniStore</span>
+            <img src="/naini-store-logo.png" alt="NainiStore" className="h-9 object-contain" />
             <nav className="flex items-center gap-6">
               <Link to={`/store/${activeStore}/orders`} className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">My Orders</Link>
               <Link to={`/search/${activeStore}`} className="text-sm font-medium text-primary-foreground/80 hover:text-primary-foreground transition-colors">Search</Link>

@@ -32,6 +32,8 @@ import Notifications from "./pages/Notifications";
 import StorePage from "./pages/StorePage";
 import RestaurantList from "./pages/RestaurantList";
 import RestaurantPage from "./pages/RestaurantPage";
+import StoresListPage from "./pages/StoresListPage";
+import PartnerStoreCatalogPage from "./pages/PartnerStoreCatalogPage";
 
 const queryClient = new QueryClient();
 
@@ -155,6 +157,8 @@ const AppContent = () => {
           <Route path="/store/:storeId" element={<StorePage />} />
           <Route path="/restaurants" element={<RestaurantList />} />
           <Route path="/restaurant/:restaurantId" element={<RestaurantPage />} />
+          <Route path="/stores" element={<StoresListPage />} />
+          <Route path="/store-catalog/:storeId" element={<PartnerStoreCatalogPage />} />
           <Route
             path="/onboarding"
             element={

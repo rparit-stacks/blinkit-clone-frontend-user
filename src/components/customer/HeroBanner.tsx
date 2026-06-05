@@ -32,11 +32,30 @@ const HeroBanner = ({ store }: HeroBannerProps) => {
     return () => clearInterval(timer);
   }, [storeBanners.length]);
 
-  if (storeBanners.length === 0) return null;
-  const banner = storeBanners[current];
+  const banner = storeBanners[current] ?? null;
 
   return (
-    <div className="px-4 py-2 lg:px-10 max-w-7xl mx-auto">
+    <div className="px-4 py-2 lg:px-10 max-w-7xl mx-auto space-y-2">
+      {/* Nainital night hero */}
+      <div className="relative h-32 rounded-2xl overflow-hidden">
+        <img
+          src="/naini-hero.jpg"
+          alt="Nainital"
+          className="w-full h-full object-cover object-[50%_60%]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+        <div className="absolute bottom-3 left-4">
+          <p className="text-white font-extrabold text-lg leading-tight">NainiStore</p>
+          <p className="text-white/70 text-[11px]">Local Hai, Instant Hai</p>
+        </div>
+        <img
+          src="/naini-store-logo.png"
+          alt="NainiStore logo"
+          className="absolute bottom-3 right-3 h-8 object-contain opacity-80"
+        />
+      </div>
+
+      {banner !== null && (
       <div
         className={`relative bg-gradient-to-r ${gradients[store]} rounded-2xl h-36 lg:h-52 flex items-center px-5 lg:px-10 overflow-hidden`}
       >
@@ -75,6 +94,7 @@ const HeroBanner = ({ store }: HeroBannerProps) => {
           ))}
         </div>
       </div>
+      )}
     </div>
   );
 };
