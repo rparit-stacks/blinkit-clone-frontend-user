@@ -22,8 +22,8 @@ const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
       }} />
 
       <div className="relative flex flex-col items-center animate-[fadeInUp_0.6s_ease-out]">
-        <img src={splashLogo} alt="NaniStore" className="w-24 h-24 mb-4 drop-shadow-lg" width={96} height={96} />
-        <h1 className="text-3xl font-extrabold text-primary-foreground tracking-tight">NaniStore</h1>
+        <img src={splashLogo} alt="NainiStore" className="w-24 h-24 mb-4 drop-shadow-lg" width={96} height={96} />
+        <h1 className="text-3xl font-extrabold text-primary-foreground tracking-tight">NainiStore</h1>
         <p className="text-sm text-primary-foreground/70 mt-1">Deliver happiness, fast</p>
       </div>
 
